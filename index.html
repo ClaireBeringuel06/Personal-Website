@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claire's Personal Website</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header id="top">
+  <h1>Claire's Personal Website</h1>
+  <p>Welcome to my personal online space</p>
+</header>
+
+<div class="container">
+  <nav>
+    <div class="nav-left">
+      <img src="media/profile.jpg" alt="Claire">
+      <span>Claire's Website</span>
+    </div>
+    <div class="nav-right">
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About Me</a></li>
+        <li><a href="#projects">My Projects</a></li>
+        <li><a href="#gallery">Gallery/Media</a></li>
+        <li><a href="#schedule">Schedule</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <section id="home">
+      <h2 class="vertical-line">Welcome to My Personal Website</h2>
+      <p>Hello! I’m Claire, and this is my personal space online. Here, I share my hobbies, skills, and everything I love to do. Explore around and enjoy!</p>
+    </section>
+
+    <section id="about">
+      <h2 class="vertical-line">About Me</h2>
+      <div class="profile-img">
+        <img src="media/profile.jpg" alt="Claire Beringuel">
+      </div>
+      <p>Hello, I’m <strong>Claire Beringuel</strong>. I love learning new things, exploring creative ideas, and taking on projects that challenge me. Outside academics, I enjoy reading, gaming, and staying active.</p>
+    </section>
+
+    <section id="projects">
+      <h2 class="vertical-line">Projects</h2>
+      <div class="projects-grid">
+        <a href="bootstrap.html" class="project-card" target="_blank">
+          <h3>Bootstrap</h3>
+          <p>Explore my project built using Bootstrap framework.</p>
+        </a>
+        <a href="bwc.html" class="project-card" target="_blank">
+          <h3>Bootstrap with CSS</h3>
+          <p>Check out my styled Bootstrap project with custom CSS.</p>
+        </a>
+      </div>
+    </section>
+
+    <section id="gallery">
+      <h2 class="vertical-line">Gallery & Media</h2>
+      <div class="gallery-grid">
+        <img src="media/fav12.jpg" alt="Hobby 1">
+        <img src="media/fav23.jpg" alt="Hobby 2">
+      </div>
+
+      <h3>Favorite Video (YouTube)</h3>
+      <iframe width="100%" height="315" src="https://www.youtube.com/embed/NSAOrGb9orM" frameborder="0" allowfullscreen></iframe>
+
+      <h3>Local Video</h3>
+      <video width="100%" controls>
+        <source src="media/localvid.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+
+      <h3>Favorite Audio</h3>
+      <audio controls>
+        <source src="media/favsongclaire.weba" type="audio/webm">
+      </audio>
+      <audio controls>
+        <source src="media/audio1 (1).mp3" type="audio/mp3">
+      </audio>
+      <audio controls>
+        <source src="media/audio2.mp3" type="audio/mp3">
+      </audio>
+    </section>
+
+    <section id="schedule">
+      <h2 class="vertical-line">Weekly Schedule</h2>
+      <table>
+        <caption>My Weekly Class Schedule</caption>
+        <thead>
+          <tr><th>Day</th><th>Subject</th><th>Time</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Wed/Thu</td><td>📘 Web System and Technologies 1</td><td>10:00 - 12:00</td></tr>
+          <tr><td>Wed/Thu</td><td>📝 Standard American English (Advance)</td><td>1:00 - 3:00</td></tr>
+          <tr><td>Wed/Thu</td><td>💻 Introduction to HCI</td><td>3:00 - 5:00</td></tr>
+          <tr><td>Wed/Thu</td><td>🔢 Data Structure and Algorithm</td><td>5:30 - 7:30</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="contact">
+      <h2 class="vertical-line">Contact Me</h2>
+      <div class="contact-container">
+        <div class="contact-info">
+          <ul>
+            <li>📘 Facebook: <a href="https://www.facebook.com/ClaireBeringuel06" target="_blank">Claire Beringuel</a></li>
+            <li>📧 Email: <a href="mailto:beringuelclaire66@gmail.com">beringuelclaire66@gmail.com</a></li>
+            <li>📞 Phone: 09639506392</li>
+            <li>📍 Location: Panabo City, Davao del Norte</li>
+          </ul>
+        </div>
+        <div class="contact-map">
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d25597.386589314196!2d125.635553!3d7.323151!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x32fff3a3f30b7b23%3A0xede8e5efbd5f9b3!2sPanabo%20City%2C%20Davao%20del%20Norte!5e0!3m2!1sen!2sph!4v1692860853523!5m2!1sen!2sph" width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+      </div>
+
+      <!-- New Message Box (pasted into your original code) -->
+      <div class="contact-form">
+        <h3>Send me a message</h3>
+        <form id="messageForm" onsubmit="showMessage(event)" aria-label="Contact form">
+          <input type="text" name="name" placeholder="Your Name" required aria-label="Your name">
+          <input type="email" name="email" placeholder="Your Email" required aria-label="Your email">
+          <textarea name="message" rows="5" placeholder="Type your message here..." required aria-label="Your message"></textarea>
+          <button type="submit">Send Message</button>
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <p>&copy; 2025 Claire Beringuel. All rights reserved.</p>
+</footer>
+
+<a href="#top" class="back-to-top">↑</a>
+
+<script>
+  // Simple frontend-only confirmation + reset (no backend)
+  function showMessage(event) {
+    event.preventDefault();
+    const form = event.target;
+    alert("✅ Your message has been sent successfully!");
+    form.reset();
+  }
+</script>
+
+</body>
+</html>
