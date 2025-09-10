@@ -18,7 +18,7 @@
 
    /* ===== HEADER ===== */
 header {
-  background: url("media/headerbg.jpg") no-repeat center center/cover; 
+  background: url("headerbg.jpg") no-repeat center center/cover; 
   color: #fff;
   text-align: center;
   padding: 80px 20px;
@@ -336,3 +336,4 @@ header {
         grid-template-columns: 1fr;
       }
     }
+
