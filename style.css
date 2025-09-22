@@ -153,21 +153,21 @@ header {
       margin-top: 20px;
     }
 
-    .project-card {
-      background: #8c5e50;
-      border-radius: 12px;
-      padding: 25px;
-      text-align: center;
-      color: #fff;
-      text-decoration: none;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
+.project-card {
+  background: #8c5e50;
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+  color: #fff;  /* white text */
+  text-decoration: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-    .project-card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 0 25px rgba(0,0,0,0.2);
-    }
-
+.project-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 0 25px rgba(0,0,0,0.2);
+  color: #fff; /* keep text white on hover */
+}
     /* ===== GALLERY ===== */
     .gallery-grid {
       display: grid;
@@ -341,5 +341,6 @@ header {
         grid-template-columns: 1fr;
       }
     }
+
 
 
