@@ -146,19 +146,19 @@ header {
     }
 
     /* ===== PROJECTS ===== */
+
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 25px;
   margin-top: 20px;
-  align-items: stretch; /* make all cards equal height */
 }
 
 .project-card {
-  display: flex;              /* make content flexible */
-  flex-direction: column;     /* stack title & text vertically */
-  justify-content: space-between; /* space evenly */
-  height: 100%;               /* force equal height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;  /* centers content vertically */
+  min-height: 200px;        /* ensures all cards same base height */
   background: #8c5e50;
   border-radius: 12px;
   padding: 25px;
@@ -167,6 +167,7 @@ header {
   text-decoration: none;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 
 .project-card:hover {
   transform: translateY(-10px);
@@ -346,6 +347,7 @@ header {
         grid-template-columns: 1fr;
       }
     }
+
 
 
 
