@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aesthetic Calculator</title>
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: url("YOUR_IMAGE.jpg") no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+  }
+
+  .container {
+    background: rgba(10, 25, 50, 0.8);
+    backdrop-filter: blur(12px);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 255, 255, 0.3);
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+    animation: fadeIn 0.8s ease-in-out;
+    color: #e0f7ff;
+    box-sizing: border-box;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  h2 { color: #66d9ff; margin-bottom: 18px; font-weight: 600; }
+
+  input {
+    width: 100%; padding: 12px; margin: 10px 0;
+    border: none; border-radius: 8px;
+    background: rgba(0, 20, 50, 0.7);
+    color: #e0f7ff; font-size: 16px;
+    box-shadow: inset 0 2px 6px rgba(0, 255, 255, 0.2);
+    box-sizing: border-box;
+  }
+  input::placeholder { color: #88c9ff; }
+
+  .password-container { position: relative; }
+  .password-container input { padding-right: 40px; }
+  .toggle-eye {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+    color: #88c9ff;
+    user-select: none;
+  }
+
+  .password-hint {
+    font-size: 12px;
+    color: #88c9ff;
+    text-align: left;
+    margin-top: -5px;
+    margin-bottom: 10px;
+  }
+
+  button {
+    background: linear-gradient(135deg, #00b4ff, #0066ff);
+    color: white; border: none;
+    padding: 12px 20px; border-radius: 8px;
+    cursor: pointer; font-size: 16px;
+    transition: 0.3s; margin-top: 5px;
+    width: 100%;
+  }
+  button:hover { background: linear-gradient(135deg, #0088ff, #0044cc); transform: scale(1.05); }
+  button:active { transform: scale(0.95); }
+
+  .error { color: #ff6b6b; font-size: 13px; text-align: left; }
+
+  .forgot-password { margin-top: 8px; font-size: 13px; }
+  .forgot-password a { color: #66d9ff; text-decoration: none; }
+  .forgot-password a:hover { text-decoration: underline; }
+
+  /* Sign up / login page links */
+  .container p {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #88c9ff;
+  }
+  .container p a {
+    color: #00e5ff;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 5px;
+  }
+  .container p a:hover { text-decoration: underline; color: #66d9ff; }
+
+  /* Calculator Styles */
+  #calculator { display: none; }
+  #display {
+    width: 100%; padding: 18px; font-size: 22px; text-align: right;
+    border-radius: 10px; margin-bottom: 15px;
+    background: rgba(0, 20, 40, 0.8); color: #00e5ff;
+    box-shadow: inset 0 2px 8px rgba(0, 255, 255, 0.2);
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .btn {
+    padding: 20px; border-radius: 12px;
+    font-size: 18px; background: rgba(0, 40, 80, 0.8);
+    color: #e0f7ff; cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 200, 255, 0.2);
+    height: 60px;
+  }
+  .btn:hover { background: rgba(0, 90, 160, 0.9); transform: translateY(-2px); }
+  .btn.op { background: linear-gradient(135deg, #00c3ff, #0066ff); color: white; }
+  .btn.equal { background: linear-gradient(135deg, #00f0ff, #0099ff); font-weight: bold; }
+
+  #profile-pic { 
+    width: 50px; 
+    height: 50px; 
+    border-radius: 50%; 
+    cursor: pointer; 
+    object-fit: cover;
+  }
+  #logout-dropdown {
+    display: none; position: absolute; top: 50px; right: 0;
+    background: rgba(10, 30, 60, 0.9);
+    border-radius: 8px; padding: 8px; min-width: 100px;
+    text-align: center; color: #e0f7ff; cursor: pointer;
+  }
+
+  #logout-modal {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center; align-items: center;
+  }
+  #logout-modal .modal-content {
+    background: rgba(10, 25, 50, 0.95);
+    padding: 20px; border-radius: 12px; text-align: center;
+    color: #e0f7ff;
+  }
+
+  /* Responsive */
+  @media (max-width: 400px) {
+    .container { padding: 15px; }
+    input, button { font-size: 14px; padding: 10px; }
+    .grid button { padding: 15px; font-size: 16px; height: 50px; }
+    #calculator h2 { font-size: 20px; }
+    #display { font-size: 20px; padding: 14px; }
+    #welcome-page button { margin-bottom: 10px; }
+  }
+
+  @media (max-width: 320px) {
+    .container { padding: 10px; }
+    input, button { font-size: 13px; padding: 8px; }
+    .grid button { padding: 12px; font-size: 14px; height: 45px; }
+    #display { font-size: 18px; padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Welcome Page -->
+<div class="container" id="welcome-page">
+  <h2>👋 Welcome!</h2>
+  <p>Glad to see you here. Are you ready to start?</p>
+  <button onclick="showSignupFromWelcome()">Sign Up</button>
+  <button onclick="showLoginFromWelcome()">Login</button>
+</div>
+
+<!-- Signup Page -->
+<div class="container" id="signup-page" style="display:none;">
+  <h2>📝 Sign Up</h2>
+  <input type="email" id="signup-email" placeholder="Email">
+  <div class="password-hint">⚠️ Enter a valid email (example@mail.com).</div>
+  <div id="signup-email-error" class="error"></div>
+
+  <div class="password-container">
+    <input type="password" id="signup-password" placeholder="Password">
+    <span class="toggle-eye" onclick="toggleVisibility('signup-password', this)">👁️</span>
+  </div>
+  <div class="password-hint">⚠️ Password must include at least 8 characters, uppercase, lowercase, number, and symbol.</div>
+
+  <div class="password-container">
+    <input type="password" id="signup-confirm-password" placeholder="Confirm Password">
+    <span class="toggle-eye" onclick="toggleVisibility('signup-confirm-password', this)">👁️</span>
+  </div>
+  <div class="password-hint">⚠️ Must match the password entered above</div>
+  <div id="signup-password-error" class="error"></div>
+  <div id="signup-confirm-password-error" class="error"></div>
+
+  <button onclick="signup()">Sign Up</button>
+  <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+</div>
+
+<!-- Login Page -->
+<div class="container" id="login-page" style="display:none;">
+  <h2>🔐 Login</h2>
+  <input type="email" id="login-email" placeholder="Email">
+  <div id="login-email-error" class="error"></div>
+
+  <div class="password-container">
+    <input type="password" id="login-password" placeholder="Password">
+    <span class="toggle-eye" onclick="toggleVisibility('login-password', this)">👁️</span>
+  </div>
+  <div id="login-password-error" class="error"></div>
+
+  <button onclick="login()">Login</button>
+  <div class="forgot-password"><a href="#" onclick="forgotPassword()">Forgot Password?</a></div>
+  <p>Don't have an account? <a href="#" onclick="showSignup()">Sign Up</a></p>
+</div>
+
+<!-- Calculator -->
+<div class="container" id="calculator">
+  <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+    <h2>🧮 Calculator</h2>
+    <div style="position:relative;">
+      <img src="profile.jpg" alt="Profile" id="profile-pic">
+      <div id="logout-dropdown">Logout</div>
+    </div>
+  </div>
+  <input type="text" id="display" disabled>
+  <div class="grid">
+    <button class="btn op" onclick="clearDisplay()">AC</button>
+    <button class="btn op" onclick="backspace()">⌫</button>
+    <button class="btn op" onclick="appendValue('%')">%</button>
+    <button class="btn op" onclick="appendValue('/')">÷</button>
+
+    <button class="btn" onclick="appendValue('7')">7</button>
+    <button class="btn" onclick="appendValue('8')">8</button>
+    <button class="btn" onclick="appendValue('9')">9</button>
+    <button class="btn op" onclick="appendValue('*')">×</button>
+
+    <button class="btn" onclick="appendValue('4')">4</button>
+    <button class="btn" onclick="appendValue('5')">5</button>
+    <button class="btn" onclick="appendValue('6')">6</button>
+    <button class="btn op" onclick="appendValue('-')">−</button>
+
+    <button class="btn" onclick="appendValue('1')">1</button>
+    <button class="btn" onclick="appendValue('2')">2</button>
+    <button class="btn" onclick="appendValue('3')">3</button>
+    <button class="btn op" onclick="appendValue('+')">+</button>
+
+    <button class="btn" onclick="appendValue('0')">0</button>
+    <button class="btn" onclick="appendValue('.')">.</button>
+    <button class="btn equal" style="grid-column: span 2;" onclick="calculate()">=</button>
+  </div>
+</div>
+
+<!-- Logout Modal -->
+<div id="logout-modal">
+  <div class="modal-content">
+    <p>Are you sure you want to log out?</p>
+    <button onclick="confirmLogout()">Yes</button>
+    <button onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+  const welcomePage = document.getElementById("welcome-page");
+  const signupPage = document.getElementById("signup-page");
+  const loginPage = document.getElementById("login-page");
+  const calculator = document.getElementById("calculator");
+  const display = document.getElementById("display");
+
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function showSignupFromWelcome() {
+    welcomePage.style.display = "none";
+    signupPage.style.display = "block";
+  }
+  function showLoginFromWelcome() {
+    welcomePage.style.display = "none";
+    loginPage.style.display = "block";
+  }
+  function showSignup() {
+    loginPage.style.display = "none";
+    signupPage.style.display = "block";
+  }
+  function showLogin() {
+    signupPage.style.display = "none";
+    loginPage.style.display = "block";
+  }
+
+  function validatePassword(p) { return passwordRegex.test(p); }
+  function validateEmail(e) { return emailRegex.test(e); }
+
+  function signup() {
+    let email = document.getElementById("signup-email").value.trim();
+    let pass = document.getElementById("signup-password").value.trim();
+    let confirm = document.getElementById("signup-confirm-password").value.trim();
+    let emailErr = document.getElementById("signup-email-error");
+    let passErr = document.getElementById("signup-password-error");
+    let confirmErr = document.getElementById("signup-confirm-password-error");
+    emailErr.textContent = ""; passErr.textContent = ""; confirmErr.textContent = "";
+
+    if (!email) return emailErr.textContent = "⚠️ Please enter email";
+    if (!validateEmail(email)) return emailErr.textContent = "❌ Invalid email";
+    if (!pass) return passErr.textContent = "⚠️ Please enter password";
+    if (!validatePassword(pass)) return passErr.textContent = "❌ Password must include 8+ chars, uppercase, lowercase, number, and symbol";
+    if (pass !== confirm) return confirmErr.textContent = "❌ Passwords do not match";
+
+    localStorage.setItem("email", email);
+    localStorage.setItem("password", pass);
+    signupPage.style.display = "none";
+    calculator.style.display = "block";
+  }
+
+  function login() {
+    let email = document.getElementById("login-email").value.trim();
+    let pass = document.getElementById("login-password").value.trim();
+    let emailErr = document.getElementById("login-email-error");
+    let passErr = document.getElementById("login-password-error");
+    emailErr.textContent = ""; passErr.textContent = "";
+
+    if (!email) return emailErr.textContent = "⚠️ Please enter email";
+    if (!validateEmail(email)) return emailErr.textContent = "❌ Invalid email";
+    if (!pass) return passErr.textContent = "⚠️ Please enter password";
+
+    if (email === localStorage.getItem("email") && pass === localStorage.getItem("password")) {
+      loginPage.style.display = "none";
+      calculator.style.display = "block";
+    } else {
+      alert("⚠️ Invalid email or password!");
+    }
+  }
+
+  function appendValue(v) { display.value += v; }
+  function clearDisplay() { display.value = ""; }
+  function backspace() { display.value = display.value.slice(0, -1); }
+  function calculate() { 
+    try { display.value = eval(display.value); } 
+    catch { alert("❌ Invalid Expression"); } 
+  }
+
+  function toggleVisibility(id, el) {
+    let i = document.getElementById(id);
+    if (i.type === "password") { i.type = "text"; el.textContent = "🙈"; }
+    else { i.type = "password"; el.textContent = "👁️"; }
+  }
+
+  function forgotPassword() { alert("⚠️ Forgot Password is not functioning right now."); }
+
+  const profilePic = document.getElementById("profile-pic");
+  const logoutDropdown = document.getElementById("logout-dropdown");
+  const logoutModal = document.getElementById("logout-modal");
+
+  profilePic.addEventListener("click", (e) => {
+    e.stopPropagation();
+    logoutDropdown.style.display = logoutDropdown.style.display === "block" ? "none" : "block";
+  });
+
+  logoutDropdown.addEventListener("click", (e) => {
+    e.stopPropagation();
+    logoutModal.style.display = "flex";
+    logoutDropdown.style.display = "none";
+  });
+
+  function confirmLogout() {
+    logoutModal.style.display = "none";
+    calculator.style.display = "none";
+    welcomePage.style.display = "block";
+    document.getElementById("login-email").value = "";
+    document.getElementById("login-password").value = "";
+  }
+
+  function closeModal() { logoutModal.style.display = "none"; }
+
+  document.addEventListener("click", (e) => {
+    if (!profilePic.contains(e.target) && !logoutDropdown.contains(e.target)) {
+      logoutDropdown.style.display = "none";
+    }
+  });
+</script>
+</body>
+</html>
