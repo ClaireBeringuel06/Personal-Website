@@ -323,6 +323,8 @@
     if (!email) return emailErr.textContent = "⚠️ Please enter email";
     if (!validateEmail(email)) return emailErr.textContent = "❌ Invalid email";
     if (!pass) return passErr.textContent = "⚠️ Please enter password";
+    if (!validatePassword(pass)) return passErr.textContent = "❌ Password must include 8+ chars, uppercase, lowercase, number,and symbol";
+    
 
     if (email === localStorage.getItem("email") && pass === localStorage.getItem("password")) {
       loginPage.style.display = "none";
