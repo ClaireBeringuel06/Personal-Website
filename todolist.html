@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>To-Do App with Starry Background</title>
+<style>
+  /* Body & background */
+  body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: url("background.jpeg") no-repeat center center fixed;
+    background-size: cover;
+  }
+
+  /* App container */
+  .app-container {
+    background: rgba(25, 0, 50, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 35px 40px;
+    border-radius: 20px;
+    box-shadow: 0 14px 45px rgba(0,0,0,0.6);
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    color: #f0eaff;
+  }
+
+  .app-header { text-align: center; }
+  .app-header h2 {
+    color: #d9c9ff;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+  }
+  .quote {
+    font-size: 14px;
+    color: #c0b0ff;
+    font-style: italic;
+  }
+
+  /* Toolbar */
+  .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .counter {
+    background: rgba(180,140,255,0.2);
+    padding: 6px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    color: #f0eaff;
+    white-space: nowrap;
+  }
+  .progress-bar {
+    flex: 1 1 100%;
+    height: 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.15);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #a78bfa, #ec4899);
+    transition: width 0.3s ease;
+  }
+
+  /* Inputs */
+  .input-group { display: flex; flex-direction: column; gap: 12px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  input, select {
+    flex: 1 1 100%;
+    min-width: 120px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: #f0eaff;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  input::placeholder { color: #c8b9ff; }
+  select option { background: #2a1240; color: #eee; }
+
+  /* Buttons */
+  button {
+    flex: 1 1 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #9333ea, #ec4899);
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+  }
+  button:hover { opacity: 0.9; transform: scale(1.03); }
+
+  /* Search & filter */
+  .search-filter { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Task list */
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 5px;
+  }
+  ul li {
+    background: rgba(255,255,255,0.08);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 6px solid transparent;
+    color: #f0eaff;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  ul li.completed { text-decoration: line-through; opacity: 0.6; }
+  .priority-high { border-left-color: #9333ea; }
+  .priority-medium { border-left-color: #facc15; }
+  .priority-low { border-left-color: #22c55e; }
+
+  .task-info { flex: 1 1 100%; }
+  .task-info strong { font-size: 15px; color: #fff; }
+  .task-meta { font-size: 13px; color: #d1c4e9; margin-top: 4px; }
+
+  .actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+  .actions button { padding: 6px 10px; font-size: 13px; border-radius: 8px; flex: 1 1 auto; }
+
+  .delete { background: #ef4444; }
+  .done { background: #22c55e; }
+  .edit { background: #f59e0b; }
+  .restore-btn { background: #6b7280; font-size: 13px; padding: 6px 10px; }
+  .clear-all { margin-top: 10px; background: #d97706; }
+
+  
+  /* Deleted section */
+  .deleted-container { margin-top: 20px; font-size: 14px; }
+  .deleted-header {
+    cursor: pointer;
+    color: #d9c9ff;
+    font-weight: 600;
+    width: 100%;
+    text-align: left;
+  }
+  
+  .deleted-list {
+  margin-top: 10px; /* space between deleted header and list */
+  padding-left: 0;  /* keep bullets removed */
+  gap: 8px;         /* spacing between deleted tasks */
+}
+
+.deleted-list li {
+  margin-bottom: 10px; /* space between each deleted task */
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #f0eaff;
+  border-left: 6px solid #ef4444; /* optional: red border like priority */
+}
+  
+  .clear-all {
+  margin-top: 10px;
+  padding: 10px 18px;
+  background: #ef4444; /* red (you can change this) */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.clear-all:hover {
+  background: #dc2626; /* darker red on hover */
+}
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    background: rgba(30, 0, 50, 0.95);
+    padding: 25px 30px;
+    border-radius: 14px;
+    text-align: center;
+    max-width: 360px;
+    width: 90%;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+    color: #f0eaff;
+  }
+  .modal-content h3 { margin: 0 0 14px; font-size: 16px; }
+  .modal-buttons {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .modal-buttons button { flex: 1 1 auto; }
+
+  /* Small screen tweaks */
+  @media (max-width: 480px) {
+    .app-container { padding: 20px 15px; gap: 15px; }
+    .app-header h2 { font-size: 22px; }
+    .quote { font-size: 13px; }
+    input, select, button { font-size: 13px; padding: 10px; }
+    .actions button { font-size: 11px; padding: 4px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="app-header">
+    <h2>🌌 To-Do App</h2>
+    <div class="quote" id="quote"></div>
+  </div>
+  <div class="toolbar">
+    <div class="counter" id="taskCounter">0 tasks</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <!-- Add Task Button triggers Modal -->
+  <div class="input-group">
+    <button onclick="openAddTaskModal()">+ Add Task</button>
+  </div>
+
+  <!-- Search & filter -->
+  <div class="search-filter">
+    <input type="text" id="searchInput" placeholder="🔍 Search tasks...">
+    <select id="filterPriority">
+      <option value="All">All Priorities</option>
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+    </select>
+    <select id="filterCategory">
+      <option value="All">All Categories</option>
+      <option value="Work">Work</option>
+      <option value="Personal">Personal</option>
+      <option value="General">General</option>
+    </select>
+  </div>
+
+  <ul id="taskList"></ul>
+
+  <div class="deleted-container">
+    <button class="deleted-header" id="toggleDeletedBtn" onclick="toggleDeleted()">
+      🗑 Deleted Tasks <span id="deletedCount">(0)</span>
+    </button>
+    <ul id="deletedList" class="deleted-list" style="display:none;"></ul>
+    <button class="clear-all" id="clearDeletedBtn" onclick="confirmAction('clearAll')" style="display:none;">Clear All</button>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal" id="addTaskModal">
+  <div class="modal-content">
+    <h3>Add New Task</h3>
+    <div class="input-group">
+      <div class="row">
+        <input type="text" id="modalTaskInput" placeholder="Task name">
+        <input type="date" id="modalTaskDate">
+      </div>
+      <div class="row">
+        <select id="modalTaskCategory">
+          <option value="General">General</option>
+          <option value="Work">Work</option>
+          <option value="Personal">Personal</option>
+        </select>
+        <select id="modalTaskPriority">
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+      </div>
+      <div class="modal-buttons">
+        <button onclick="confirmAddTask()">Add</button>
+        <button onclick="closeAddTaskModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <!-- Edit Task Modal -->
+<div class="modal" id="editTaskModal">
+  <div class="modal-content">
+    <h3>Edit Task</h3>
+    <div class="input-group">
+      <div class="row">
+        <input type="text" id="editModalTaskInput" placeholder="Task name">
+        <input type="date" id="editModalTaskDate">
+      </div>
+      <div class="row">
+        <select id="editModalTaskCategory">
+          <option value="General">General</option>
+          <option value="Work">Work</option>
+          <option value="Personal">Personal</option>
+        </select>
+        <select id="editModalTaskPriority">
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+      </div>
+      <div class="modal-buttons">
+        <button id="saveEditBtn">Save</button>
+        <button onclick="closeEditTaskModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3 id="modalMessage">Are you sure?</h3>
+    <div class="modal-buttons">
+      <button onclick="executeAction()">Yes</button>
+      <button onclick="closeModal()">No</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const taskList=document.getElementById("taskList");
+const deletedList=document.getElementById("deletedList");
+const deletedCount=document.getElementById("deletedCount");
+const clearDeletedBtn=document.getElementById("clearDeletedBtn");
+const taskCounter=document.getElementById("taskCounter");
+const progressFill=document.getElementById("progressFill");
+const searchInput=document.getElementById("searchInput");
+const filterPriority=document.getElementById("filterPriority");
+const filterCategory=document.getElementById("filterCategory");
+
+let tasks=JSON.parse(localStorage.getItem("tasks"))||[];
+let deletedTasks=JSON.parse(localStorage.getItem("deletedTasks"))||[];
+
+const modal=document.getElementById("modal");
+const modalMessage=document.getElementById("modalMessage");
+let pendingAction=null, pendingIndex=null;
+
+// Add Task Modal elements
+const addTaskModal=document.getElementById("addTaskModal");
+const modalTaskInput=document.getElementById("modalTaskInput");
+const modalTaskDate=document.getElementById("modalTaskDate");
+const modalTaskCategory=document.getElementById("modalTaskCategory");
+const modalTaskPriority=document.getElementById("modalTaskPriority");
+
+function openAddTaskModal(){ addTaskModal.style.display="flex"; }
+function closeAddTaskModal(){ 
+  addTaskModal.style.display="none"; 
+  modalTaskInput.value=""; modalTaskDate.value=""; 
+}
+
+function confirmAddTask(){
+  const text=modalTaskInput.value.trim();
+  if(!text) return;
+  const task={
+    text,
+    date:modalTaskDate.value,
+    category:modalTaskCategory.value,
+    priority:modalTaskPriority.value,
+    completed:false
+  };
+  tasks.push(task);
+  saveData(); renderTasks(); closeAddTaskModal();
+}
+
+function confirmAction(action,index=null){
+  pendingAction=action;
+  pendingIndex=index;
+  let msg="Are you sure?";
+  if(action==="add") msg="Add this new task?";
+  if(action==="done") msg="Mark this task as done?";
+  if(action==="edit") msg="Edit this task?";
+  if(action==="delete") msg="Delete this task?";
+  if(action==="restore") msg="Restore this task?";
+  if(action==="clearAll") msg="Clear all deleted tasks?";
+  modalMessage.textContent=msg;
+  modal.style.display="flex";
+}
+function closeModal(){ modal.style.display="none"; }
+function executeAction(){
+  if(pendingAction==="done") toggleComplete(pendingIndex);
+  if(pendingAction==="edit") editTask(pendingIndex);
+  if(pendingAction==="delete") deleteTask(pendingIndex);
+  if(pendingAction==="restore") restoreTask(pendingIndex);
+  if(pendingAction==="clearAll") clearAllDeleted();
+  closeModal();
+}
+
+const quotes=["Stay focused, one task at a time.","Small steps lead to big results.","You can do anything, but not everything at once."];
+document.getElementById("quote").textContent=quotes[Math.floor(Math.random()*quotes.length)];
+
+function saveData(){
+  localStorage.setItem("tasks",JSON.stringify(tasks));
+  localStorage.setItem("deletedTasks",JSON.stringify(deletedTasks));
+}
+function toggleComplete(index){
+  tasks[index].completed=!tasks[index].completed;
+  saveData(); renderTasks();
+}
+function editTask(index){
+  const newText=prompt("Edit your task:",tasks[index].text);
+  if(newText&&newText.trim()){ tasks[index].text=newText.trim(); saveData(); renderTasks(); }
+}
+function deleteTask(index){
+  deletedTasks.push(tasks[index]); tasks.splice(index,1); saveData(); renderTasks(); renderDeleted();
+}
+function restoreTask(index){
+  tasks.push(deletedTasks[index]); deletedTasks.splice(index,1); saveData(); renderTasks(); renderDeleted();
+}
+function clearAllDeleted(){ deletedTasks=[]; saveData(); renderDeleted(); }
+function toggleDeleted(){
+  const deletedVisible = deletedList.style.display === "block";
+  deletedList.style.display = deletedVisible ? "none" : "block";
+  clearDeletedBtn.style.display = deletedVisible ? "none" : (deletedTasks.length > 0 ? "block" : "none");
+}
+  
+  // Edit Task Modal elements
+const editTaskModal = document.getElementById("editTaskModal");
+const editModalTaskInput = document.getElementById("editModalTaskInput");
+const editModalTaskDate = document.getElementById("editModalTaskDate");
+const editModalTaskCategory = document.getElementById("editModalTaskCategory");
+const editModalTaskPriority = document.getElementById("editModalTaskPriority");
+
+let editIndex = null;
+
+// Open modal with task info
+function openEditTaskModal(index) {
+  editIndex = index;
+  const task = tasks[index];
+  editModalTaskInput.value = task.text;
+  editModalTaskDate.value = task.date;
+  editModalTaskCategory.value = task.category;
+  editModalTaskPriority.value = task.priority;
+  editTaskModal.style.display = "flex";
+}
+
+// Close modal
+function closeEditTaskModal() {
+  editTaskModal.style.display = "none";
+  editIndex = null;
+}
+
+// Save edited task
+document.getElementById("saveEditBtn").addEventListener("click", () => {
+  if (editIndex === null) return; // safety check
+  const updatedText = editModalTaskInput.value.trim();
+  if (!updatedText) return alert("Task name cannot be empty");
+  
+  tasks[editIndex].text = updatedText;
+  tasks[editIndex].date = editModalTaskDate.value;
+  tasks[editIndex].category = editModalTaskCategory.value;
+  tasks[editIndex].priority = editModalTaskPriority.value;
+
+  saveData();      // save to localStorage
+  renderTasks();   // update task list
+  closeEditTaskModal();
+});
+
+// Override the existing editTask function to open modal
+function editTask(index) {
+  openEditTaskModal(index);
+}
+  
+function renderTasks(){
+  taskList.innerHTML="";
+  const searchTerm=searchInput.value.toLowerCase();
+  const priorityFilter=filterPriority.value;
+  const categoryFilter=filterCategory.value;
+  tasks.forEach((task,index)=>{
+    if(task.text.toLowerCase().includes(searchTerm)&&
+      (priorityFilter==="All"||task.priority===priorityFilter)&&
+      (categoryFilter==="All"||task.category===categoryFilter)){
+      const li=document.createElement("li");
+      if(task.completed) li.classList.add("completed");
+      li.classList.add("priority-"+task.priority.toLowerCase());
+      const info=document.createElement("div"); info.className="task-info";
+      info.innerHTML=`<strong>${task.text}</strong>
+        <div class="task-meta">📅 ${task.date||"No date"} | 📂 ${task.category} | Priority: ${task.priority}</div>`;
+      const actions=document.createElement("div"); actions.className="actions";
+      const doneBtn=document.createElement("button"); doneBtn.textContent="✔"; doneBtn.className="done"; doneBtn.onclick=()=>confirmAction("done",index);
+      const editBtn=document.createElement("button"); editBtn.textContent="✎"; editBtn.className="edit"; editBtn.onclick=()=>confirmAction("edit",index);
+      const deleteBtn=document.createElement("button"); deleteBtn.textContent="✖"; deleteBtn.className="delete"; deleteBtn.onclick=()=>confirmAction("delete",index);
+      actions.append(doneBtn,editBtn,deleteBtn);
+      li.append(info,actions);
+      taskList.appendChild(li);
+    }
+  });
+  updateCounter();
+}
+function renderDeleted(){
+  deletedList.innerHTML="";
+  deletedTasks.forEach((task,index)=>{
+    const li=document.createElement("li");
+    const info=document.createElement("div"); info.className="task-info"; info.innerHTML=`<strong>${task.text}</strong>`;
+    const restoreBtn=document.createElement("button"); restoreBtn.textContent="Restore"; restoreBtn.className="restore-btn"; restoreBtn.onclick=()=>confirmAction("restore",index);
+    li.append(info,restoreBtn);
+    deletedList.appendChild(li);
+  });
+  deletedCount.textContent=`(${deletedTasks.length})`;
+  clearDeletedBtn.style.display=deletedList.style.display==="block" && deletedTasks.length>0?"block":"none";
+}
+function updateCounter(){
+  const total=tasks.length;
+  const done=tasks.filter(t=>t.completed).length;
+  taskCounter.textContent=`${total} tasks`;
+  progressFill.style.width=total?((done/total)*100)+"%":"0%";
+}
+
+searchInput.addEventListener("input",renderTasks);
+filterPriority.addEventListener("change",renderTasks);
+filterCategory.addEventListener("change",renderTasks);
+
+renderTasks(); renderDeleted();
+</script>
+</body>
+</html>
