@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Rocket Runner — Enhanced Edition</title>
+<style>
+  :root {
+    --panel: #101820;
+    --bg: #05080f;
+    --accent: #3a7bd5;
+    --danger: #ff4757;
+    --success: #ffd700;
+    --neutral: #dcdcdc;
+  }
+  html, body { height:100%; margin:0; }
+  body {
+    display:flex; align-items:center; justify-content:center;
+    background: url("https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80") no-repeat center center fixed;
+    background-size: cover;
+    color:#fff;
+    font-family: "Segoe UI", Roboto, sans-serif;
+  }
+  .game-box {
+    width:90%; max-width:520px; padding:16px;
+    border-radius:16px; background:var(--panel);
+    border:2px solid #222;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    position: relative;
+  }
+  #score,#highScore { font-weight:700; font-size:15px; transition: transform 0.1s; }
+  #highScore.newRecord {
+    color: var(--success);
+    text-shadow: 0 0 6px var(--success), 0 0 12px orange;
+  }
+  canvas {
+    width:100%; height:auto; display:block; border-radius:10px;
+    background: radial-gradient(circle at top, #0b122d, #000);
+    border:2px solid #333;
+    touch-action: none;
+  }
+  .button-row {
+    display:flex; flex-direction:row; gap:8px; margin-top:8px;
+    justify-content:center;
+    width:100%;
+  }
+  #restartBtn, #pauseBtn, #muteBtn {
+    padding:8px 16px;
+    min-width:100px;
+    border:none; border-radius:8px;
+    font-size:14px; cursor:pointer;
+    transition: transform 0.15s, background 0.2s;
+    text-align:center;
+  }
+  #restartBtn { background: #3a7bd5; color:white; }
+  #pauseBtn { background: #3a7bd5; color:white; display: none; }
+  #muteBtn { background: var(--accent); color:white; position:relative; }
+  #restartBtn:hover, #pauseBtn:hover, #muteBtn:hover { transform: scale(1.05); }
+  .hint { font-size:12px; color:#bbb; margin-top:6px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="game-box">
+  <div id="score">Score: 0</div>
+  <div id="highScore">High Score: 0</div>
+  <canvas id="gameArea" width="480" height="200"></canvas>
+  <div class="button-row">
+    <button id="restartBtn">🔄 Enter/Restart</button>
+    <button id="pauseBtn">⏸ Pause</button>
+    <button id="muteBtn">🔊</button>
+  </div>
+  <div class="hint">Tap/click anywhere to jump. Press Enter to restart. Press P to pause/resume.</div>
+</div>
+
+<script>
+(() => {
+  const gameArea = document.getElementById('gameArea');
+  const ctx = gameArea.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const highScoreEl = document.getElementById('highScore');
+  const restartBtn = document.getElementById('restartBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const muteBtn = document.getElementById('muteBtn');
+
+  const W = gameArea.width, H = gameArea.height;
+  const groundY = 170;
+
+  const baseSpeed = 160;
+  let gameSpeed = baseSpeed;
+  const speedIncreaseInterval = 250;
+  const speedIncreaseAmount = 12;
+  let nextSpeedThreshold = speedIncreaseInterval;
+
+  // Sounds
+  const jumpSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+  const bgMusic = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
+  const gameOverSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+  const starSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+  const milestoneSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"); // milestone
+  milestoneSound.volume = 0.25;
+  const sounds = [jumpSound, bgMusic, gameOverSound, starSound, milestoneSound];
+  sounds.forEach(s => s.volume = 0.25);
+  bgMusic.loop = true;
+
+  let isMuted = false;
+  muteBtn.addEventListener('click', () => {
+    isMuted = !isMuted;
+    sounds.forEach(s => s.muted = isMuted);
+    muteBtn.textContent = isMuted ? '🔇' : '🔊';
+  });
+
+  const rocket = { x:60, y:groundY, width:14, height:28, dy:0, gravity:2600, jumpSpeed:-680, grounded:true };
+  let isHoldingJump=false, holdTimer=0, maxHold=0.16;
+  let asteroids=[], nextGap=220, gapMin=180, gapMax=340;
+  const starLayers=[
+    Array.from({length:20},()=>({x:Math.random()*W,y:Math.random()*H,size:1,speed:15})),
+    Array.from({length:20},()=>({x:Math.random()*W,y:Math.random()*H,size:2,speed:35})),
+    Array.from({length:10},()=>({x:Math.random()*W,y:Math.random()*H,size:3,speed:10}))
+  ];
+  let shootingStars=[], nextMeteorShower=0;
+  let score=0, highScore=parseInt(localStorage.getItem("rocketHighScore"))||0;
+  highScoreEl.textContent="High Score: "+highScore;
+  let newRecord=false;
+  let running=false, gameOver=false, paused=false, lastTs=null;
+  let meteorFlash = 0;
+  let timeOfDay = 0;
+
+  const headImg = new Image();
+  headImg.src = "YOUR_HEAD_IMAGE_URL_HERE";
+
+  function startJumpHolding(){ 
+    if(gameOver||paused) return; 
+    if(rocket.grounded){ 
+      rocket.dy = rocket.jumpSpeed; 
+      rocket.grounded = false; 
+      isHoldingJump = true; 
+      holdTimer = 0; 
+      jumpSound.currentTime = 0; 
+      jumpSound.play();
+    }
+  }
+  function stopJumpHolding(){isHoldingJump=false; holdTimer=0;}
+
+  // Clicks on buttons do NOT trigger jump
+  document.addEventListener('pointerdown', (e)=>{
+    e.preventDefault();
+    if(gameOver){ restartGame(); return; }
+    if(e.target.closest('button')) return; 
+    startJumpHolding();
+  }, {passive:false});
+
+  window.addEventListener('pointerup', ()=>stopJumpHolding());
+  document.addEventListener('keydown', (e)=>{
+    if(['Space','ArrowUp'].includes(e.code)){ e.preventDefault(); startJumpHolding(); }
+    if(e.code==='Enter' && gameOver){ restartGame(); }
+    if(e.code==='KeyP' && running && !gameOver){ togglePause(); }
+  });
+  document.addEventListener('keyup', (e)=>{ if(['Space','ArrowUp'].includes(e.code)) stopJumpHolding(); });
+  restartBtn.addEventListener("click", e=>{ e.stopPropagation(); restartGame(); });
+  pauseBtn.addEventListener("click", e=>{ e.stopPropagation(); togglePause(); });
+
+  function spawnObstacle(forceSmall=false){ 
+    const size = forceSmall ? 10 : 12 + Math.random()*16; 
+    asteroids.push({x:W+6, y:groundY-size/2, size}); 
+    nextGap = gapMin + Math.random()*(gapMax-gapMin);
+  }
+
+  function restartGame(){
+    asteroids=[]; 
+    score=0; scoreEl.textContent='Score: 0';
+    rocket.y=groundY; rocket.dy=0; rocket.grounded=true;
+    gameOver=false; running=true; paused=false; 
+    pauseBtn.style.display = "inline-block"; 
+    pauseBtn.textContent = "⏸ Pause";        
+    gameSpeed = baseSpeed; nextSpeedThreshold = speedIncreaseInterval; lastTs = null;
+    isHoldingJump=false; holdTimer=0; newRecord=false;
+    highScoreEl.textContent="High Score: "+highScore;
+    highScoreEl.classList.remove("newRecord");
+    restartBtn.style.display="none"; 
+    shootingStars=[]; nextMeteorShower=0; 
+    bgMusic.currentTime=0; bgMusic.play(); 
+    spawnObstacle(true);
+    requestAnimationFrame(loop);
+  }
+
+  function collides(r,o){ 
+    const rx1=r.x-r.width/2, rx2=r.x+r.width/
+    2, ry1=r.y-r.height, ry2=r.y;
+    const ox1=o.x-o.size, ox2=o.x+o.size, oy1=o.y-o.size, oy2=o.y+o.size;
+    return !(rx2<ox1||rx1>ox2||ry2<oy1||ry1>oy2);
+  }
+
+  function togglePause(){ 
+    if(!running || gameOver) return; 
+    paused = !paused; 
+    pauseBtn.textContent = paused ? "▶ Resume" : "⏸ Pause"; 
+    if(paused){ bgMusic.pause(); } 
+    else{ bgMusic.play(); lastTs=null; requestAnimationFrame(loop); } 
+  }
+
+  function loop(ts){
+    if(!lastTs) lastTs=ts;
+    const dt = Math.min(0.05,(ts-lastTs)/1000);
+    lastTs = ts;
+    timeOfDay += dt*0.03;
+    if(timeOfDay>1) timeOfDay=0;
+
+    if(!gameOver && !paused){
+      if(isHoldingJump && holdTimer<maxHold && rocket.dy<0){ 
+        holdTimer += dt; 
+        rocket.dy += (rocket.gravity*0.45)*dt; 
+      } else { 
+        rocket.dy += rocket.gravity*dt; 
+      }
+      rocket.y += rocket.dy*dt;
+      if(rocket.y >= groundY){ 
+        rocket.y = groundY; 
+        rocket.dy = 0; 
+        rocket.grounded = true; 
+        isHoldingJump = false; 
+        holdTimer = 0; 
+      }
+
+      // Move stars
+      for(let layer of starLayers){ 
+        for(let s of layer){ 
+          s.x -= (gameSpeed*(s.speed/100))*dt; 
+          if(s.x<-2){ s.x=W+2; s.y=Math.random()*H; } 
+        } 
+      }
+
+      // Shooting stars
+      if(performance.now()>nextMeteorShower){ 
+        if(Math.random()<0.002){ 
+          let count=3+Math.floor(Math.random()*2);
+          for(let i=0;i<count;i++){ 
+            shootingStars.push({x:W+i*30,y:Math.random()*H*0.5+i*10,speed:300+Math.random()*150}); 
+          }
+          meteorFlash=0.2; 
+          nextMeteorShower=performance.now()+4000;
+        } 
+      }
+      for(let s of shootingStars){ s.x -= s.speed*dt; s.y += s.speed*dt*0.3; } 
+      shootingStars = shootingStars.filter(s=>!(s.x<-100||s.y>H+100));
+
+      // Spawn obstacles
+      if(asteroids.length===0) spawnObstacle(true); 
+      else { const last=asteroids[asteroids.length-1]; if(W-last.x>nextGap) spawnObstacle(); }
+      for(let o of asteroids) o.x -= gameSpeed*dt;
+      asteroids = asteroids.filter(o=>o.x+o.size>-20);
+
+      // Collision
+      for(let o of asteroids){ 
+        if(collides(rocket,o)){
+          gameOver=true;
+          running=false;
+          restartBtn.style.display="block"; 
+          pauseBtn.style.display="none"; 
+          bgMusic.pause();
+          gameOverSound.currentTime=0;
+          gameOverSound.play(); 
+          if(Math.floor(score) > highScore){
+            highScore = Math.floor(score);
+            localStorage.setItem("rocketHighScore", highScore);
+            newRecord = true;
+            highScoreEl.textContent = "High Score: "+highScore+" ⭐ NEW!";
+            highScoreEl.classList.add("newRecord");
+          } 
+          break;
+        }
+      }
+
+      // Update score
+      score += dt*60; 
+      scoreEl.textContent='Score: '+Math.floor(score);
+
+      // Play milestone sound every 1000 points
+      if(Math.floor(score / 1000) > Math.floor((score - dt*60) / 1000)){
+        milestoneSound.currentTime = 0;
+        milestoneSound.play();
+      }
+
+      if(score >= nextSpeedThreshold){ 
+        gameSpeed += speedIncreaseAmount; 
+        nextSpeedThreshold += speedIncreaseInterval; 
+      }
+      if(meteorFlash>0){ meteorFlash -= dt; if(meteorFlash<0) meteorFlash=0; }
+    }
+
+    render();
+    if(running && !paused) requestAnimationFrame(loop);
+  }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+
+    // Background (day/night)
+    const dayColor=[13,27,58], nightColor=[0,0,0];
+    const t=Math.sin(timeOfDay*Math.PI);
+    const r=dayColor[0]*(1-t)+nightColor[0]*t;
+    const g=dayColor[1]*(1-t)+nightColor[1]*t;
+    const b=dayColor[2]*(1-t)+nightColor[2]*t;
+    ctx.fillStyle=`rgb(${r},${g},${b})`;
+    ctx.fillRect(0,0,W,H);
+
+    // Stars
+    ctx.fillStyle='#fff';
+    for(let layer of starLayers){ for(let s of layer) ctx.fillRect(Math.round(s.x),Math.round(s.y),s.size,s.size); }
+
+    // Shooting stars
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; 
+    for(let s of shootingStars){ ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x+20,s.y-6); ctx.stroke(); }
+
+    // Ground
+    ctx.fillStyle='#16232f'; ctx.fillRect(0,groundY+10,W,H-(groundY+10));
+
+    // Asteroids
+    for(let o of asteroids){
+      let grad=ctx.createRadialGradient(o.x,o.y,o.size*0.3,o.x,o.y,o.size);
+      grad.addColorStop(0,"#bbb"); grad.addColorStop(1,"#444");
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      ctx.arc(Math.round(o.x),Math.round(o.y),Math.round(o.size),0,Math.PI*2);
+      ctx.fill();
+    }
+
+    // Astronaut body
+    let cx=rocket.x, cy=rocket.y, t2=Date.now()/200, swing=Math.sin(t2)*6;
+    ctx.fillStyle="#dcdcdc"; 
+    ctx.fillRect(cx-12,cy-32,24,32); 
+    ctx.fillRect(cx-8,cy,8,16+swing); 
+    ctx.fillRect(cx,cy,8,16-swing); 
+    ctx.fillRect(cx-18,cy-28,6,20); 
+    ctx.fillRect(cx+12,cy-28,6,20);
+
+    // Astronaut head
+    if(headImg.complete && headImg.naturalWidth>0){
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx,cy-42,16,0,Math.PI*2); ctx.closePath(); ctx.clip();
+      ctx.drawImage(headImg,cx-16,cy-58,32,32);
+      ctx.restore();
+    } else {
+      ctx.beginPath(); ctx.arc(cx,cy-42,16,0,Math.PI*2);
+      ctx.fillStyle="#eee"; ctx.fill(); ctx.strokeStyle="#999"; ctx.stroke();
+    }
+
+    // Game over / Paused text
+    if(gameOver){
+      ctx.save();
+      ctx.fillStyle='white';
+      ctx.font='16px Segoe UI';
+      ctx.textAlign="center";
+      ctx.shadowColor="rgba(255,255,255,0.9)";
+      ctx.shadowBlur=10;
+      ctx.fillText('💥 Game Over! Tap anywhere or press Enter 💥',W/2,70);
+      ctx.restore(); ctx.textAlign="start";
+    }
+    if(paused && !gameOver){
+      ctx.save();
+      ctx.fillStyle='white';
+      ctx.font='20px Segoe UI';
+      ctx.textAlign="center";
+      ctx.fillText('⏸ Paused',W/2,80);
+      ctx.restore(); ctx.textAlign="start";
+    }
+  }
+
+  headImg.onload = ()=>{ restartGame(); };
+
+})();
+</script>
+</body>
+</html>
