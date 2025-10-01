@@ -66,13 +66,12 @@
   <div id="highScore">High Score: 0</div>
   <canvas id="gameArea" width="480" height="200"></canvas>
   <div class="button-row">
-    <button id="restartBtn">🔄 Enter</button>
+    <button id="restartBtn">🔄 Enter/Restart</button>
     <button id="pauseBtn">⏸ Pause</button>
     <button id="muteBtn">🔊</button>
   </div>
   <div class="hint">Tap/click anywhere to jump. Press Enter to restart. Press P to pause/resume.</div>
-</div>
-
+</div>  
 <script>
 (() => {
   const gameArea = document.getElementById('gameArea');
@@ -97,7 +96,7 @@
   const bgMusic = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
   const gameOverSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
   const starSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
-  const milestoneSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"); // milestone
+  const milestoneSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"); 
   milestoneSound.volume = 0.25;
   const sounds = [jumpSound, bgMusic, gameOverSound, starSound, milestoneSound];
   sounds.forEach(s => s.volume = 0.25);
@@ -129,14 +128,14 @@
   const headImg = new Image();
   headImg.src = "Dinop.png";
 
-  function startJumpHolding(){ 
-    if(gameOver||paused) return; 
-    if(rocket.grounded){ 
-      rocket.dy = rocket.jumpSpeed; 
-      rocket.grounded = false; 
-      isHoldingJump = true; 
-      holdTimer = 0; 
-      jumpSound.currentTime = 0; 
+  function startJumpHolding(){
+    if(gameOver||paused) return;
+    if(rocket.grounded){
+      rocket.dy = rocket.jumpSpeed;
+      rocket.grounded = false;
+      isHoldingJump = true;
+      holdTimer = 0;
+      jumpSound.currentTime = 0;
       jumpSound.play();
     }
   }
@@ -146,7 +145,7 @@
   document.addEventListener('pointerdown', (e)=>{
     e.preventDefault();
     if(gameOver){ restartGame(); return; }
-    if(e.target.closest('button')) return; 
+    if(e.target.closest('button')) return;
     startJumpHolding();
   }, {passive:false});
 
@@ -160,43 +159,41 @@
   restartBtn.addEventListener("click", e=>{ e.stopPropagation(); restartGame(); });
   pauseBtn.addEventListener("click", e=>{ e.stopPropagation(); togglePause(); });
 
-  function spawnObstacle(forceSmall=false){ 
-    const size = forceSmall ? 10 : 12 + Math.random()*16; 
-    asteroids.push({x:W+6, y:groundY-size/2, size}); 
+  function spawnObstacle(forceSmall=false){
+    const size = forceSmall ? 10 : 12 + Math.random()*16;
+    asteroids.push({x:W+6, y:groundY-size/2, size});
     nextGap = gapMin + Math.random()*(gapMax-gapMin);
   }
 
   function restartGame(){
-    asteroids=[]; 
+    asteroids=[];
     score=0; scoreEl.textContent='Score: 0';
     rocket.y=groundY; rocket.dy=0; rocket.grounded=true;
-    gameOver=false; running=true; paused=false; 
-    pauseBtn.style.display = "inline-block"; 
-    pauseBtn.textContent = "⏸ Pause";        
+    gameOver=false; running=true; paused=false;
+    pauseBtn.style.display = "inline-block";
+    pauseBtn.textContent = "⏸ Pause";
     gameSpeed = baseSpeed; nextSpeedThreshold = speedIncreaseInterval; lastTs = null;
     isHoldingJump=false; holdTimer=0; newRecord=false;
     highScoreEl.textContent="High Score: "+highScore;
     highScoreEl.classList.remove("newRecord");
-    restartBtn.style.display="none"; 
-    shootingStars=[]; nextMeteorShower=0; 
-    bgMusic.currentTime=0; bgMusic.play(); 
+    shootingStars=[]; nextMeteorShower=0;
+    bgMusic.currentTime=0; bgMusic.play();
     spawnObstacle(true);
     requestAnimationFrame(loop);
   }
 
-  function collides(r,o){ 
-    const rx1=r.x-r.width/2, rx2=r.x+r.width/
-    2, ry1=r.y-r.height, ry2=r.y;
+  function collides(r,o){
+    const rx1=r.x-r.width/2, rx2=r.x+r.width/2, ry1=r.y-r.height, ry2=r.y;
     const ox1=o.x-o.size, ox2=o.x+o.size, oy1=o.y-o.size, oy2=o.y+o.size;
     return !(rx2<ox1||rx1>ox2||ry2<oy1||ry1>oy2);
   }
 
-  function togglePause(){ 
-    if(!running || gameOver) return; 
-    paused = !paused; 
-    pauseBtn.textContent = paused ? "▶ Resume" : "⏸ Pause"; 
-    if(paused){ bgMusic.pause(); } 
-    else{ bgMusic.play(); lastTs=null; requestAnimationFrame(loop); } 
+  function togglePause(){
+    if(!running || gameOver) return;
+    paused = !paused;
+    pauseBtn.textContent = paused ? "▶ Resume" : "⏸ Pause";
+    if(paused){ bgMusic.pause(); }
+    else{ bgMusic.play(); lastTs=null; requestAnimationFrame(loop); }
   }
 
   function loop(ts){
@@ -207,72 +204,71 @@
     if(timeOfDay>1) timeOfDay=0;
 
     if(!gameOver && !paused){
-      if(isHoldingJump && holdTimer<maxHold && rocket.dy<0){ 
-        holdTimer += dt; 
-        rocket.dy += (rocket.gravity*0.45)*dt; 
-      } else { 
-        rocket.dy += rocket.gravity*dt; 
+      if(isHoldingJump && holdTimer<maxHold && rocket.dy<0){
+        holdTimer += dt;
+        rocket.dy += (rocket.gravity*0.45)*dt;
+      } else {
+        rocket.dy += rocket.gravity*dt;
       }
       rocket.y += rocket.dy*dt;
-      if(rocket.y >= groundY){ 
-        rocket.y = groundY; 
-        rocket.dy = 0; 
-        rocket.grounded = true; 
-        isHoldingJump = false; 
-        holdTimer = 0; 
+      if(rocket.y >= groundY){
+        rocket.y = groundY;
+        rocket.dy = 0;
+        rocket.grounded = true;
+        isHoldingJump = false;
+        holdTimer = 0;
       }
 
       // Move stars
-      for(let layer of starLayers){ 
-        for(let s of layer){ 
-          s.x -= (gameSpeed*(s.speed/100))*dt; 
-          if(s.x<-2){ s.x=W+2; s.y=Math.random()*H; } 
-        } 
+      for(let layer of starLayers){
+        for(let s of layer){
+          s.x -= (gameSpeed*(s.speed/100))*dt;
+          if(s.x<-2){ s.x=W+2; s.y=Math.random()*H; }
+        }
       }
 
       // Shooting stars
-      if(performance.now()>nextMeteorShower){ 
-        if(Math.random()<0.002){ 
+      if(performance.now()>nextMeteorShower){
+        if(Math.random()<0.002){
           let count=3+Math.floor(Math.random()*2);
-          for(let i=0;i<count;i++){ 
-            shootingStars.push({x:W+i*30,y:Math.random()*H*0.5+i*10,speed:300+Math.random()*150}); 
+          for(let i=0;i<count;i++){
+            shootingStars.push({x:W+i*30,y:Math.random()*H*0.5+i*10,speed:300+Math.random()*150});
           }
-          meteorFlash=0.2; 
+          meteorFlash=0.2;
           nextMeteorShower=performance.now()+4000;
-        } 
+        }
       }
-      for(let s of shootingStars){ s.x -= s.speed*dt; s.y += s.speed*dt*0.3; } 
+      for(let s of shootingStars){ s.x -= s.speed*dt; s.y += s.speed*dt*0.3; }
       shootingStars = shootingStars.filter(s=>!(s.x<-100||s.y>H+100));
 
       // Spawn obstacles
-      if(asteroids.length===0) spawnObstacle(true); 
+      if(asteroids.length===0) spawnObstacle(true);
       else { const last=asteroids[asteroids.length-1]; if(W-last.x>nextGap) spawnObstacle(); }
       for(let o of asteroids) o.x -= gameSpeed*dt;
       asteroids = asteroids.filter(o=>o.x+o.size>-20);
 
       // Collision
-      for(let o of asteroids){ 
+      for(let o of asteroids){
         if(collides(rocket,o)){
           gameOver=true;
           running=false;
-          restartBtn.style.display="block"; 
-          pauseBtn.style.display="none"; 
+          pauseBtn.style.display = "inline-block"; // ✅ Keep pause button visible
           bgMusic.pause();
           gameOverSound.currentTime=0;
-          gameOverSound.play(); 
+          gameOverSound.play();
           if(Math.floor(score) > highScore){
             highScore = Math.floor(score);
             localStorage.setItem("rocketHighScore", highScore);
             newRecord = true;
             highScoreEl.textContent = "High Score: "+highScore+" ⭐ NEW!";
             highScoreEl.classList.add("newRecord");
-          } 
+          }
           break;
         }
       }
 
       // Update score
-      score += dt*60; 
+      score += dt*60;
       scoreEl.textContent='Score: '+Math.floor(score);
 
       // Play milestone sound every 1000 points
@@ -281,9 +277,9 @@
         milestoneSound.play();
       }
 
-      if(score >= nextSpeedThreshold){ 
-        gameSpeed += speedIncreaseAmount; 
-        nextSpeedThreshold += speedIncreaseInterval; 
+      if(score >= nextSpeedThreshold){
+        gameSpeed += speedIncreaseAmount;
+        nextSpeedThreshold += speedIncreaseInterval;
       }
       if(meteorFlash>0){ meteorFlash -= dt; if(meteorFlash<0) meteorFlash=0; }
     }
@@ -309,7 +305,7 @@
     for(let layer of starLayers){ for(let s of layer) ctx.fillRect(Math.round(s.x),Math.round(s.y),s.size,s.size); }
 
     // Shooting stars
-    ctx.strokeStyle='#fff'; ctx.lineWidth=2; 
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2;
     for(let s of shootingStars){ ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x+20,s.y-6); ctx.stroke(); }
 
     // Ground
@@ -326,13 +322,13 @@
     }
 
     // Astronaut body
-    let cx=rocket.x, cy=rocket.y, t2=Date.now()/200, swing=Math.sin(t2)*6;
+    let cx = rocket.x, cy = rocket.y, t2 = Date.now()/200, swing = Math.sin(t2)*6;
     ctx.fillStyle="#dcdcdc"; 
-    ctx.fillRect(cx-12,cy-32,24,32); 
-    ctx.fillRect(cx-8,cy,8,16+swing); 
-    ctx.fillRect(cx,cy,8,16-swing); 
-    ctx.fillRect(cx-18,cy-28,6,20); 
-    ctx.fillRect(cx+12,cy-28,6,20);
+    ctx.fillRect(cx-12, cy-32, 24, 32);
+    ctx.fillRect(cx-8, cy, 8, 16+swing);
+    ctx.fillRect(cx, cy, 8, 16-swing);
+    ctx.fillRect(cx-18, cy-28, 6, 20);
+    ctx.fillRect(cx+12, cy-28, 6, 20);
 
     // Astronaut head
     if(headImg.complete && headImg.naturalWidth>0){
@@ -366,9 +362,12 @@
     }
   }
 
-  headImg.onload = ()=>{ restartGame(); };
+  headImg.onload = ()=>{ 
+  // Game waits until user presses Enter or clicks Restart
+  pauseBtn.style.display = "inline-block"; // keep pause button ready
+};
 
 })();
-</script>
+</script>  
 </body>
 </html>
